@@ -100,13 +100,74 @@ liquor_cv_fc <- liquor_cv_fit |>
 liquor_cv_fc |>
   accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
 
+head(liquor_cv_fc)
+
+tail(liquor_cv_fc)
+
+# The dates of the first and last forecast are January 2002 and December 2019, respectively.
+
+# The ARIMA model has an RMSE of 81.4 and an MAE of 65.7.
+
+# The ETS model has an RSMSE of 94.4 and an MAE of 72.3.
+
+# The seasonal random walk model has an RMSE of 161.0 and an MAE of 137.0.
+
+# It is clear that the ARIMA model forecasts most accurately, with both metrics in agreement.
 
 
+# 2.4. Are the Differences Significant?
+
+# Diebold-Mariano Test for ARIMA vs. ETS
+
+liquor_errs <- liquor_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(liquor) |> select(Month, actual = sales),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e)
+
+forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2)
+
+# Diebold-Mariano Test for ARIMA vs. Seasonal Random Walk
 
 
+liquor_errs <- liquor_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(liquor) |> select(Month, actual = sales),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e)
+
+forecast::dm.test(liquor_errs$arima, liquor_errs$snaive, h = 1, power = 2)
+
+# The first DM test returned a DM statistic of -2.9062 and a p-value of 0.004.
+
+# The second DM test returned a DM statistic of -10.755 and a p-value of 2.2e-16.
+
+# Both tests in tandem confirm that the ARIMA model is the most accurate, since both DM statistics are negative. If I were the liquor store chain, I would choose the ARIMA model to forecast sales.
 
 
+# Part 3: Forecast Combination
 
+# 3a.
+
+liquor_combo_fc <- liquor_cv_fit |>
+  mutate(combo = (arima + ets) / 2) |>
+  forecast(h = 1)
+
+liquor_combo_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
+
+# The combo model outperforms the ETS and seasonal random walk models in accuracy, but is still beat by the ARIMA model, which remains the best one.
+
+
+# 3b. 
+
+cor(liquor_errs$arima, liquor_errs$ets)
+
+# The correlation between the errors of the ARIMA and ETS forecasts is very high, at 0.879. This explains why the combination model did not beat the ARIMA model in terms of accuracy. The high correlation of the errors means they do not cancel much in the combination model.
 
 
 
