@@ -7,6 +7,8 @@ library(BVAR)
 
 # Part 2: A Business Forecasting Horse Race: ARIMA vs. ETS
 
+# 2.1 The Data
+
 # 2.1a
 
 liquor_raw <- read_csv(
@@ -46,7 +48,7 @@ liquor |>
 
 # Alcohol sales have an upward trend since 1992, when the data started being collected. The seasonal pattern shows a reliable peak in sales in the month of December, with January being the consistently lowest month.
 
-# The seasonal swings in sales do tend to grow with the level, which suggests that using the log of sales is a good decision. This will keep seasonal swings constant in size throughout the horizon
+# The seasonal swings in sales do tend to grow with the level, which suggests that using the log of sales is a good decision. This will keep seasonal swings constant in size throughout the horizon.
 
 
 # 2.2. Fit Both Models
@@ -63,6 +65,9 @@ liquor_fit |> select(ets) |> report()
 # The chosen ARIMA specification was ARIMA(1,0,2)(2,1,1). This means that we have 1 non-seasonal AR lag, 0 non-seasonal differences, and 2 non-seasonal MA error lags. We also have 2 seasonal AR lags, 1 seasonal difference, and 1 seasonal MA error lag.
 
 # The chosen ETS specification was ETS(A, A, A). This means that we have an additive trend, additive error, and additive seasonality, consistent with the additive Holt-Winters model.
+
+
+# 2.2b.
 
 liquor_fit |> select(arima) |> gg_tsresiduals()
 
